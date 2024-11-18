@@ -4,20 +4,41 @@ import {SafeAreaView} from "react-native-safe-area-context"
 import FormField from '../../components/FormField'
 import { useState } from 'react'
 import CustomButton from '../../components/CustomButton'
-import { Link } from 'expo-router'
+import { Link, router } from 'expo-router'
 import { images } from '../../constants'
 import { Alert } from 'react-native'
+import { getCurrentUser, signIn } from "../../lib/appwrite"
+import { useGlobalContext } from "../../context/GlobalProvider"
 
 const SignIn = () => {
+  const {setUser, setIsLoggedIn} = useGlobalContext()
   const [form, setForm] = useState({
     email: '',
     password: '',
   })
+  const [isSubmiting, setIsSubmiting] = useState(false)
   const {email, password} = form
 
   const submit = async () => {
     if(!email || !password ) {
       Alert.alert("Incomplete", "Please fill in all fields")
+      return
+    }
+
+    setIsSubmiting(true)
+
+    try {
+      await signIn(email, password)
+
+      const result = await getCurrentUser()
+      setUser(result)
+      setIsLoggedIn(true)
+
+      router.replace('/home')
+    } catch (error) {
+      Alert.alert("Error", error.message)
+    } finally {
+      setIsSubmiting(false)
     }
     
   }
@@ -26,9 +47,9 @@ const SignIn = () => {
       <ScrollView className="my-16 px-4">
         <View className="justify-center items-center space-y-8 my-2">
           <View className="space-y-5 mt-2">
-            <Text className="text-4xl font-opbold text-gray-800 text-center">We Say Hello!</Text>
+            <Text className="text-4xl font-opbold text-gray-800 text-center">Sign In</Text>
 
-            <Text className="text-lg font-opbold text-gray-400 text-center mt-3 w-64">Welcome back. Use your email and password to log in</Text>
+            <Text className="text-base font-opsemibold line-clamp-2 text-gray-400 text-center mt-3 w-64">Welcome back. Use your email and password to log in</Text>
           </View>
 
           <FormField
@@ -52,7 +73,7 @@ const SignIn = () => {
             <Text className="text-end text-base text-gray-800 font-opregular">
                 Don't have an account? {' '}
             </Text>
-            <Link href="/sign-up" className='text-base text-secondary-200 font-opbold'>
+            <Link href="/sign-up" className='text-base text-secondary font-opbold'>
               Sign up
             </Link>
           </View>
@@ -62,6 +83,7 @@ const SignIn = () => {
             title="Log in"
             containerStyles="w-full mt-3"
             textStyles="text-black"
+            isLoading={isSubmiting}
             handlePress={submit}
           />
 

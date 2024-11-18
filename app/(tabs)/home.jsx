@@ -3,8 +3,8 @@ import React from 'react'
 
 const Home = () => {
   return (
-    <View>
-      <Text>Home</Text>
+    <View className="items-center justify-center flex-1">
+      <Text>com.levelp.nidoho</Text>
     </View>
   )
 }
